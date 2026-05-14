@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI ROI Calculator — Dealership Performance 360 CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0a0f1e;
+    color: #e8eaf2;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+  }
+
+  .card {
+    background: #111827;
+    border: 1px solid #1e2a40;
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 720px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .brand-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .brand-dot:nth-child(1) { background: #1e90ff; }
+  .brand-dot:nth-child(2) { background: #00c8aa; }
+  .brand-dot:nth-child(3) { background: #1e90ff; opacity: 0.4; }
+
+  .brand-name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b7aaa;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #f0f2ff;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #4e5a7a;
+    margin-bottom: 2rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #1e2a40;
+    margin: 1.75rem 0;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 560px) {
+    .two-col { grid-template-columns: 1fr; }
+    .card { padding: 1.5rem; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+  }
+
+  .col-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #2a5fa8;
+    margin-bottom: 1rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: #4e5a7a;
+    margin-bottom: 5px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrap .pre,
+  .input-wrap .suf {
+    position: absolute;
+    font-size: 13px;
+    color: #4e5a7a;
+    font-family: 'DM Mono', monospace;
+    pointer-events: none;
+  }
+  .input-wrap .pre { left: 11px; }
+  .input-wrap .suf { right: 11px; }
+
+  .input-wrap input {
+    width: 100%;
+    background: #0d1526;
+    border: 1px solid #1e2a40;
+    border-radius: 8px;
+    color: #c8d0f0;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  .input-wrap input::-webkit-outer-spin-button,
+  .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-wrap input:focus { border-color: #1e90ff; }
+  .input-wrap.has-pre input { padding-left: 26px; }
+  .input-wrap.has-suf input { padding-right: 28px; }
+
+  .calc-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #141c2e;
+    font-size: 13px;
+  }
+
+  .calc-row:last-child { border-bottom: none; }
+  .calc-row .rl { color: #4e5a7a; }
+  .calc-row .rv {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #c8d0f0;
+  }
+
+  .net-profit-box {
+    background: linear-gradient(135deg, #0d2a1a 0%, #0a1a30 100%);
+    border: 1px solid #0f4030;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .net-profit-box .lbl {
+    font-size: 12px;
+    color: #2e8b6a;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .net-profit-box .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: #00c8aa;
+  }
+
+  .net-profit-box .val.neg { color: #ff6b6b; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 1.75rem;
+  }
+
+  .metric {
+    background: #0d1526;
+    border: 1px solid #1e2a40;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .metric .ml {
+    font-size: 11px;
+    color: #4e5a7a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .metric .mv {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: #1e90ff;
+  }
+
+  .metric .mv.pos { color: #00c8aa; }
+
+  .footer {
+    margin-top: 1.75rem;
+    font-size: 11px;
+    color: #2a3650;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div class="brand-dot"></div>
+    <div class="brand-dot"></div>
+    <span class="brand-name">Dealership Performance 360 CRM</span>
+  </div>
+
+  <h1>AI ROI Calculator</h1>
+  <p class="subtitle">See how much revenue AI can add to your dealership each month.</p>
+
+  <hr class="divider">
+
+  <div class="two-col">
+    <div>
+      <div class="col-label">Inputs</div>
+
+      <div class="field">
+        <label>Monthly leads (L)</label>
+        <div class="input-wrap">
+          <input type="number" id="leads" value="250" min="0" step="1" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <label>After-hours % (AH%)</label>
+        <div class="input-wrap has-suf">
+          <input type="number" id="ah" value="45" min="0" max="100" step="0.5" oninput="calc()">
+          <span class="suf">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Current conversion (CR1)</label>
+        <div class="input-wrap has-suf">
+          <input type="number" id="cr1" value="3" min="0" max="100" step="0.1" oninput="calc()">
+          <span class="suf">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>AI conversion (CR2)</label>
+        <div class="input-wrap has-suf">
+          <input type="number" id="cr2" value="22" min="0" max="100" step="0.1" oninput="calc()">
+          <span class="suf">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Average sale value (ASV)</label>
+        <div class="input-wrap has-pre">
+          <span class="pre">$</span>
+          <input type="number" id="asv" value="80000" min="0" step="1000" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Gross margin (GM%)</label>
+        <div class="input-wrap has-suf">
+          <input type="number" id="gm" value="15" min="0" max="100" step="0.5" oninput="calc()">
+          <span class="suf">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>AI monthly cost (C)</label>
+        <div class="input-wrap has-pre">
+          <span class="pre">$</span>
+          <input type="number" id="cost" value="3500" min="0" step="100" oninput="calc()">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-label">Calculations</div>
+      <div class="calc-rows">
+        <div class="calc-row"><span class="rl">After-hours leads</span><span class="rv" id="ahl">112.5</span></div>
+        <div class="calc-row"><span class="rl">Current sales</span><span class="rv" id="csales">3.375</span></div>
+        <div class="calc-row"><span class="rl">AI sales</span><span class="rv" id="aisales">24.75</span></div>
+        <div class="calc-row"><span class="rl">Sales added by AI</span><span class="rv" id="addedSales">21.375</span></div>
+        <div class="calc-row"><span class="rl">Additional AI revenue</span><span class="rv" id="airev">$1,710,000</span></div>
+        <div class="calc-row"><span class="rl">Gross profit</span><span class="rv" id="gprofit">$256,500</span></div>
+      </div>
+
+      <div class="net-profit-box">
+        <div class="lbl">Net monthly profit</div>
+        <div class="val" id="nprofit">$253,000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="ml">ROI</div>
+      <div class="mv pos" id="roi">7,229%</div>
+    </div>
+    <div class="metric">
+      <div class="ml">Revenue per AI $</div>
+      <div class="mv" id="rpd">$489</div>
+    </div>
+    <div class="metric">
+      <div class="ml">Payback period</div>
+      <div class="mv" id="payback">&lt;1 day</div>
+    </div>
+  </div>
+
+  <div class="footer">Dealership Performance 360 CRM &mdash; AI ROI Calculator</div>
+</div>
+
+<script>
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+function calc() {
+  var L   = parseFloat(document.getElementById('leads').value) || 0;
+  var AH  = (parseFloat(document.getElementById('ah').value) || 0) / 100;
+  var CR1 = (parseFloat(document.getElementById('cr1').value) || 0) / 100;
+  var CR2 = (parseFloat(document.getElementById('cr2').value) || 0) / 100;
+  var ASV = parseFloat(document.getElementById('asv').value) || 0;
+  var GM  = (parseFloat(document.getElementById('gm').value) || 0) / 100;
+  var C   = parseFloat(document.getElementById('cost').value) || 0;
+
+  var ahl       = L * AH;
+  var csales    = ahl * CR1;
+  var aisales   = ahl * CR2;
+  var added     = aisales - csales;
+  var airev     = added * ASV;
+  var gprofit   = airev * GM;
+  var nprofit   = gprofit - C;
+  var roi       = C > 0 ? (nprofit / C) * 100 : 0;
+  var rpd       = C > 0 ? airev / C : 0;
+  var payback   = airev > 0 ? (C / (airev / 30)) : 0;
+
+  document.getElementById('ahl').textContent       = ahl.toFixed(1);
+  document.getElementById('csales').textContent    = csales.toFixed(3);
+  document.getElementById('aisales').textContent   = aisales.toFixed(2);
+  document.getElementById('addedSales').textContent= added.toFixed(3);
+  document.getElementById('airev').textContent     = fmt(airev);
+  document.getElementById('gprofit').textContent   = fmt(gprofit);
+
+  var npEl = document.getElementById('nprofit');
+  npEl.textContent = fmt(nprofit);
+  npEl.className = 'val' + (nprofit < 0 ? ' neg' : '');
+
+  document.getElementById('roi').textContent     = Math.round(roi).toLocaleString() + '%';
+  document.getElementById('rpd').textContent     = fmt(rpd);
+  document.getElementById('payback').textContent = payback < 1 ? '<1 day' : payback.toFixed(1) + ' days';
+}
+calc();
+</script>
+</body>
+</html>
